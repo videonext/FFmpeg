@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <windows.h>
 
 #include <mfx/mfxvideo.h>
 

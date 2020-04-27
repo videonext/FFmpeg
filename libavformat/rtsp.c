@@ -2111,7 +2111,9 @@ static int read_packet(AVFormatContext *s,
 {
     RTSPState *rt = s->priv_data;
     int len;
-
+    if (rt->force_stop) {
+        return AVERROR_EXIT;
+    }
     switch(rt->lower_transport) {
     default:
 #if CONFIG_RTSP_DEMUXER

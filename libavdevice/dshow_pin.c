@@ -18,6 +18,10 @@
  * License along with FFmpeg; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+#include <wchar.h>
+#include <windows.h>
+#include <w32api/errors.h>
+wchar_t *wcsdup(const wchar_t *);
 
 #include "dshow_capture.h"
 

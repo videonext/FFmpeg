@@ -759,6 +759,9 @@ redo:
     for (;;) {
         RTSPMessageHeader reply;
 
+        if (rt->force_stop) {
+            return -1;
+        }
         ret = ff_rtsp_read_reply(s, &reply, NULL, 1, NULL);
         if (ret < 0)
             return ret;

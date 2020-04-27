@@ -411,6 +411,8 @@ typedef struct RTSPState {
     char default_lang[4];
     int buffer_size;
     int pkt_size;
+
+    int force_stop;
 } RTSPState;
 
 #define RTSP_FLAG_FILTER_SRC  0x1    /**< Filter incoming UDP packets -

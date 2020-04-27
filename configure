@@ -6158,7 +6158,7 @@ check_type "windows.h dxva.h" "DXVA_PicParams_HEVC" -DWINAPI_FAMILY=WINAPI_FAMIL
 check_type "windows.h dxva.h" "DXVA_PicParams_VP9" -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -D_CRT_BUILD_DESKTOP_APP=0
 check_type "windows.h d3d11.h" "ID3D11VideoDecoder"
 check_type "windows.h d3d11.h" "ID3D11VideoContext"
-check_type "d3d9.h dxva2api.h" DXVA2_ConfigPictureDecode -D_WIN32_WINNT=0x0602
+check_type "windows.h d3d9.h dxva2api.h" DXVA2_ConfigPictureDecode -D_WIN32_WINNT=0x0602
 
 check_type "vdpau/vdpau.h" "VdpPictureInfoHEVC"
 check_type "vdpau/vdpau.h" "VdpPictureInfoVP9"
@@ -6309,7 +6309,7 @@ enabled liblensfun        && require_pkg_config liblensfun lensfun lensfun.h lf_
 # pkg-config support.  Instead, users should make sure that the build
 # can find the libraries and headers through other means.
 enabled libmfx            && { check_pkg_config libmfx libmfx "mfx/mfxvideo.h" MFXInit ||
-                               { require libmfx "mfx/mfxvideo.h" MFXInit "-llibmfx $advapi32_extralibs" && warn "using libmfx without pkg-config"; } }
+                               { require libmfx "mfx/mfxvideo.h" MFXInit "-lmfx $advapi32_extralibs -lstdc++" && warn "using libmfx without pkg-config"; } }
 if enabled libmfx; then
    check_cc MFX_CODEC_VP9 "mfx/mfxvp9.h mfx/mfxstructures.h" "MFX_CODEC_VP9"
 fi
@@ -6549,7 +6549,7 @@ check_lib vfw32 "windows.h vfw.h" capCreateCaptureWindow -lvfw32
 # w32api 3.12 had it defined wrong
 check_cpp_condition vfwcap_defines vfw.h "WM_CAP_DRIVER_CONNECT > WM_USER"
 
-check_type "dshow.h" IBaseFilter
+check_type "wchar.h windows.h dshow.h" IBaseFilter
 
 # check for ioctl_meteor.h, ioctl_bt848.h and alternatives
 check_headers "dev/bktr/ioctl_meteor.h dev/bktr/ioctl_bt848.h"                   ||

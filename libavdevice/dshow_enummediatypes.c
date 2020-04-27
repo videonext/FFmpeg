@@ -26,6 +26,8 @@ DECLARE_QUERYINTERFACE(libAVEnumMediaTypes,
 DECLARE_ADDREF(libAVEnumMediaTypes)
 DECLARE_RELEASE(libAVEnumMediaTypes)
 
+const GUID ff2_GUID_NULL = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+
 long WINAPI
 libAVEnumMediaTypes_Next(libAVEnumMediaTypes *this, unsigned long n,
                          AM_MEDIA_TYPE **types, unsigned long *fetched)
@@ -35,7 +37,7 @@ libAVEnumMediaTypes_Next(libAVEnumMediaTypes *this, unsigned long n,
     if (!types)
         return E_POINTER;
     if (!this->pos && n == 1) {
-        if (!IsEqualGUID(&this->type.majortype, &GUID_NULL)) {
+        if (!IsEqualGUID(&this->type.majortype, &ff2_GUID_NULL)) {
             AM_MEDIA_TYPE *type = av_malloc(sizeof(AM_MEDIA_TYPE));
             if (!type)
                 return E_OUTOFMEMORY;
@@ -94,7 +96,7 @@ libAVEnumMediaTypes_Setup(libAVEnumMediaTypes *this, const AM_MEDIA_TYPE *type)
     SETVTBL(vtbl, libAVEnumMediaTypes, Clone);
 
     if (!type) {
-        this->type.majortype = GUID_NULL;
+        this->type.majortype = ff2_GUID_NULL;
     } else {
         ff_copy_dshow_media_type(&this->type, type);
     }
