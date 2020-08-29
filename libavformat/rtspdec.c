@@ -739,6 +739,7 @@ static int rtsp_read_header(AVFormatContext *s)
             if ((ret = rtsp_read_play(s)) < 0) {
                 ff_rtsp_close_streams(s);
                 ff_rtsp_close_connections(s);
+                av_freep(&rt->real_setup_cache);
                 return ret;
             }
         }

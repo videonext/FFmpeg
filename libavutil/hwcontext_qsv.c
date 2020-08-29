@@ -1184,8 +1184,10 @@ static int qsv_device_derive_from_child(AVHWDeviceContext *ctx,
     return 0;
 
 fail:
-    if (hwctx->session)
+    if (hwctx->session) {
         MFXClose(hwctx->session);
+        hwctx->session = NULL;
+    }
     return ret;
 }
 
