@@ -20,13 +20,11 @@
  */
 
 #include "libavutil/intreadwrite.h"
-#include "libavutil/mathematics.h"
 #include "libavutil/dict.h"
 #include "avformat.h"
 #include "internal.h"
 #include "pcm.h"
 #include "aiff.h"
-#include "isom.h"
 #include "id3v2.h"
 #include "mov_chan.h"
 #include "replaygain.h"
@@ -120,6 +118,8 @@ static int get_aiff_header(AVFormatContext *s, int size,
     else
         sample_rate = (val + (1ULL<<(-exp-1))) >> -exp;
     par->sample_rate = sample_rate;
+    if (size < 18)
+        return AVERROR_INVALIDDATA;
     size -= 18;
 
     /* get codec id for AIFF-C */
@@ -261,8 +261,8 @@ static int aiff_read_header(AVFormatContext *s)
             position = avio_tell(pb);
             ff_id3v2_read(s, ID3v2_DEFAULT_MAGIC, &id3v2_extra_meta, size);
             if (id3v2_extra_meta)
-                if ((ret = ff_id3v2_parse_apic(s, &id3v2_extra_meta)) < 0 ||
-                    (ret = ff_id3v2_parse_chapters(s, &id3v2_extra_meta)) < 0) {
+                if ((ret = ff_id3v2_parse_apic(s, id3v2_extra_meta)) < 0 ||
+                    (ret = ff_id3v2_parse_chapters(s, id3v2_extra_meta)) < 0) {
                     ff_id3v2_free_extra_meta(&id3v2_extra_meta);
                     return ret;
                 }
@@ -406,6 +406,8 @@ static int aiff_read_packet(AVFormatContext *s,
         break;
     default:
         size = st->codecpar->block_align ? (MAX_SIZE / st->codecpar->block_align) * st->codecpar->block_align : MAX_SIZE;
+        if (!size)
+            return AVERROR_INVALIDDATA;
     }
     size = FFMIN(max_size, size);
     res = av_get_packet(s->pb, pkt, size);
@@ -428,5 +430,5 @@ AVInputFormat ff_aiff_demuxer = {
     .read_header    = aiff_read_header,
     .read_packet    = aiff_read_packet,
     .read_seek      = ff_pcm_read_seek,
-    .codec_tag      = (const AVCodecTag* const []){ ff_codec_aiff_tags, 0 },
+    .codec_tag      = ff_aiff_codec_tags_list,
 };

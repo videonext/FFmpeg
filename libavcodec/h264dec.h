@@ -30,6 +30,7 @@
 
 #include "libavutil/buffer.h"
 #include "libavutil/intreadwrite.h"
+#include "libavutil/mem_internal.h"
 #include "libavutil/thread.h"
 
 #include "cabac.h"
@@ -161,6 +162,12 @@ typedef struct H264Picture {
     int recovered;          ///< picture at IDR or recovery point + recovery count
     int invalid_gap;
     int sei_recovery_frame_cnt;
+
+    AVBufferRef *pps_buf;
+    const PPS   *pps;
+
+    int mb_width, mb_height;
+    int mb_stride;
 } H264Picture;
 
 typedef struct H264Ref {
