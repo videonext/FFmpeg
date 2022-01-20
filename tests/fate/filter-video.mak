@@ -59,6 +59,9 @@ fate-filter-paletteuse-nodither: CMD = framecrc -auto_conversion_filters -i $(TA
 FATE_FILTER_PALETTEUSE += fate-filter-paletteuse-bayer
 fate-filter-paletteuse-bayer: CMD = framecrc -auto_conversion_filters -i $(TARGET_SAMPLES)/filter/anim.mkv -i $(TARGET_SAMPLES)/filter/anim-palette.png -lavfi paletteuse=bayer -pix_fmt bgra
 
+FATE_FILTER_PALETTEUSE += fate-filter-paletteuse-bayer0
+fate-filter-paletteuse-bayer0: CMD = framecrc -auto_conversion_filters -i $(TARGET_SAMPLES)/filter/anim.mkv -i $(TARGET_SAMPLES)/filter/anim-palette.png -lavfi paletteuse=bayer:bayer_scale=0 -pix_fmt bgra
+
 FATE_FILTER_PALETTEUSE += fate-filter-paletteuse-sierra2_4a
 fate-filter-paletteuse-sierra2_4a: CMD = framecrc -auto_conversion_filters -i $(TARGET_SAMPLES)/filter/anim.mkv -i $(TARGET_SAMPLES)/filter/anim-palette.png -lavfi paletteuse=sierra2_4a:diff_mode=rectangle -pix_fmt bgra
 
@@ -564,6 +567,7 @@ fate-filter-pad: CMD = video_filter "pad=iw*1.5:ih*1.5:iw*0.3:ih*0.2"
 FATE_FILTER_PP = fate-filter-pp fate-filter-pp1 fate-filter-pp2 fate-filter-pp3 fate-filter-pp4 fate-filter-pp5 fate-filter-pp6
 FATE_FILTER_VSYNTH-$(CONFIG_PP_FILTER) += $(FATE_FILTER_PP)
 $(FATE_FILTER_PP): fate-vsynth1-mpeg4-qprd
+fate-vsynth1-mpeg4-qprd: KEEP_OVERRIDE= -keep
 
 fate-filter-pp:  CMD = framecrc -flags bitexact -export_side_data venc_params -idct simple -i $(TARGET_PATH)/tests/data/fate/vsynth1-mpeg4-qprd.avi -frames:v 5 -flags +bitexact -vf "pp=be/hb/vb/tn/l5/al"
 fate-filter-pp1: CMD = video_filter "pp=fq|4/be/hb/vb/tn/l5/al"
@@ -676,7 +680,7 @@ fate-filter-tile: CMD = video_filter "tile=3x3:nb_frames=5:padding=7:margin=2"
 tests/pixfmts.mak: TAG = GEN
 tests/pixfmts.mak: ffmpeg$(PROGSSUF)$(EXESUF) | tests
 	$(M)printf "PIXFMTS = " > $@
-	$(Q)$(TARGET_EXEC) $(TARGET_PATH)/$< -pix_fmts list 2> /dev/null | awk 'NR > 8 && /^IO/ { printf $$2 " " }' >> $@
+	$(Q)$(TARGET_EXEC) $(TARGET_PATH)/$< -nostdin -pix_fmts list 2> /dev/null | awk 'NR > 8 && /^IO/ { printf $$2 " " }' >> $@
 	$(Q)printf "\n" >> $@
 
 RUNNING_PIXFMTS_TESTS := $(filter check fate fate-list fate-filter fate-vfilter fate-filter-pixdesc%,$(MAKECMDGOALS))
@@ -778,7 +782,7 @@ FATE_AVCONV-$(call DEMDEC, IMAGE2, PGMYUV) += $(FATE_FILTER_VSYNTH-yes)
 #
 # Metadata tests
 #
-FILTER_METADATA_COMMAND = ffprobe$(PROGSSUF)$(EXESUF) -of compact=p=0 -show_entries frame=pkt_pts:frame_tags -bitexact -f lavfi
+FILTER_METADATA_COMMAND = ffprobe$(PROGSSUF)$(EXESUF) -of compact=p=0 -show_entries frame=pts:frame_tags -bitexact -f lavfi
 
 SCENEDETECT_DEPS = FFPROBE LAVFI_INDEV MOVIE_FILTER SELECT_FILTER SCALE_FILTER \
                    AVCODEC AVDEVICE MOV_DEMUXER SVQ3_DECODER ZLIB
@@ -837,7 +841,7 @@ fate-filter-metadata-avf-aphase-meter-out-of-phase: CMD = run $(FILTER_METADATA_
 
 tests/data/file4560-override2rotate0.mov: TAG = GEN
 tests/data/file4560-override2rotate0.mov: ffmpeg$(PROGSSUF)$(EXESUF) | tests/data
-	$(M)$(TARGET_EXEC) $(TARGET_PATH)/$< \
+	$(M)$(TARGET_EXEC) $(TARGET_PATH)/$< -nostdin \
 	-i $(TARGET_SAMPLES)/filter/sample-in-issue-505.mov -c copy -flags +bitexact -metadata:s:v:0 rotate=0 $(TARGET_PATH)/$@ -y 2>/dev/null
 
 FATE_FILTER_SAMPLES-$(call ALLYES, MOV_DEMUXER H264_DECODER AAC_FIXED_DECODER PCM_S16LE_ENCODER MOV_MUXER) += fate-filter-meta-4560-rotate0
@@ -846,16 +850,16 @@ fate-filter-meta-4560-rotate0: CMD = framecrc -auto_conversion_filters -flags +b
 
 REFCMP_DEPS = FFMPEG LAVFI_INDEV TESTSRC2_FILTER AVGBLUR_FILTER METADATA_FILTER
 
-FATE_FILTER_SAMPLES-$(call ALLYES, $(REFCMP_DEPS) PSNR_FILTER) += fate-filter-refcmp-psnr-rgb
+FATE_FILTER-$(call ALLYES, $(REFCMP_DEPS) PSNR_FILTER) += fate-filter-refcmp-psnr-rgb
 fate-filter-refcmp-psnr-rgb: CMD = refcmp_metadata psnr rgb24 0.002
 
-FATE_FILTER_SAMPLES-$(call ALLYES, $(REFCMP_DEPS) PSNR_FILTER) += fate-filter-refcmp-psnr-yuv
+FATE_FILTER-$(call ALLYES, $(REFCMP_DEPS) PSNR_FILTER) += fate-filter-refcmp-psnr-yuv
 fate-filter-refcmp-psnr-yuv: CMD = refcmp_metadata psnr yuv422p 0.0015
 
-FATE_FILTER_SAMPLES-$(call ALLYES, $(REFCMP_DEPS) SSIM_FILTER) += fate-filter-refcmp-ssim-rgb
+FATE_FILTER-$(call ALLYES, $(REFCMP_DEPS) SSIM_FILTER) += fate-filter-refcmp-ssim-rgb
 fate-filter-refcmp-ssim-rgb: CMD = refcmp_metadata ssim rgb24 0.015
 
-FATE_FILTER_SAMPLES-$(call ALLYES, $(REFCMP_DEPS) SSIM_FILTER) += fate-filter-refcmp-ssim-yuv
+FATE_FILTER-$(call ALLYES, $(REFCMP_DEPS) SSIM_FILTER) += fate-filter-refcmp-ssim-yuv
 fate-filter-refcmp-ssim-yuv: CMD = refcmp_metadata ssim yuv422p 0.015
 
 FATE_SAMPLES_FFPROBE += $(FATE_METADATA_FILTER-yes)

@@ -22,6 +22,7 @@
 
 #include "libavutil/intreadwrite.h"
 #include "libavutil/avassert.h"
+#include "libavutil/channel_layout.h"
 #include "libavutil/internal.h"
 #include "avformat.h"
 #include "internal.h"
@@ -232,11 +233,11 @@ static void print_stats(AVFormatContext *s, const char *where)
     SGADemuxContext *sga = s->priv_data;
 
     av_log(s, AV_LOG_DEBUG, "START %s\n", where);
-    av_log(s, AV_LOG_DEBUG, "pos: %lX\n", avio_tell(s->pb));
+    av_log(s, AV_LOG_DEBUG, "pos: %"PRIX64"\n", avio_tell(s->pb));
     av_log(s, AV_LOG_DEBUG, "idx: %X\n", sga->idx);
     av_log(s, AV_LOG_DEBUG, "packet_type: %X\n", sga->packet_type);
     av_log(s, AV_LOG_DEBUG, "payload_size: %X\n", sga->payload_size);
-    av_log(s, AV_LOG_DEBUG, "SECTOR: %016lX\n", AV_RB64(sga->sector));
+    av_log(s, AV_LOG_DEBUG, "SECTOR: %016"PRIX64"\n", AV_RB64(sga->sector));
     av_log(s, AV_LOG_DEBUG, "stream: %X\n", sga->sector[1]);
     av_log(s, AV_LOG_DEBUG, "END %s\n", where);
 }
@@ -300,7 +301,7 @@ static int sga_video_packet(AVFormatContext *s, AVPacket *pkt)
     sga->flags = 0;
     update_type_size(s);
 
-    av_log(s, AV_LOG_DEBUG, "VIDEO PACKET: %d:%016lX i:%X\n", pkt->size, AV_RB64(sga->sector), sga->idx);
+    av_log(s, AV_LOG_DEBUG, "VIDEO PACKET: %d:%016"PRIX64" i:%X\n", pkt->size, AV_RB64(sga->sector), sga->idx);
 
     return 0;
 }
@@ -347,7 +348,7 @@ static int sga_audio_packet(AVFormatContext *s, AVPacket *pkt)
     sga->flags = 0;
     update_type_size(s);
 
-    av_log(s, AV_LOG_DEBUG, "AUDIO PACKET: %d:%016lX i:%X\n", pkt->size, AV_RB64(sga->sector), sga->idx);
+    av_log(s, AV_LOG_DEBUG, "AUDIO PACKET: %d:%016"PRIX64" i:%X\n", pkt->size, AV_RB64(sga->sector), sga->idx);
 
     return 0;
 }
@@ -466,7 +467,7 @@ static int sga_seek(AVFormatContext *s, int stream_index,
     return -1;
 }
 
-AVInputFormat ff_sga_demuxer = {
+const AVInputFormat ff_sga_demuxer = {
     .name           = "sga",
     .long_name      = NULL_IF_CONFIG_SMALL("Digital Pictures SGA"),
     .priv_data_size = sizeof(SGADemuxContext),

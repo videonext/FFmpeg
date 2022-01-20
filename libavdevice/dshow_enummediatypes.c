@@ -28,7 +28,7 @@ DECLARE_RELEASE(enummediatypes, DShowEnumMediaTypes)
 
 const GUID ff2_GUID_NULL = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-long ff_dshow_enummediatypes_Next(DShowEnumMediaTypes *this, unsigned long n,
+long WINAPI ff_dshow_enummediatypes_Next(DShowEnumMediaTypes *this, unsigned long n,
                          AM_MEDIA_TYPE **types, unsigned long *fetched)
 {
     int count = 0;
@@ -52,20 +52,20 @@ long ff_dshow_enummediatypes_Next(DShowEnumMediaTypes *this, unsigned long n,
         return S_FALSE;
     return S_OK;
 }
-long ff_dshow_enummediatypes_Skip(DShowEnumMediaTypes *this, unsigned long n)
+long WINAPI ff_dshow_enummediatypes_Skip(DShowEnumMediaTypes *this, unsigned long n)
 {
     dshowdebug("ff_dshow_enummediatypes_Skip(%p)\n", this);
     if (n) /* Any skip will always fall outside of the only valid type. */
         return S_FALSE;
     return S_OK;
 }
-long ff_dshow_enummediatypes_Reset(DShowEnumMediaTypes *this)
+long WINAPI ff_dshow_enummediatypes_Reset(DShowEnumMediaTypes *this)
 {
     dshowdebug("ff_dshow_enummediatypes_Reset(%p)\n", this);
     this->pos = 0;
     return S_OK;
 }
-long ff_dshow_enummediatypes_Clone(DShowEnumMediaTypes *this, DShowEnumMediaTypes **enums)
+long WINAPI ff_dshow_enummediatypes_Clone(DShowEnumMediaTypes *this, DShowEnumMediaTypes **enums)
 {
     DShowEnumMediaTypes *new;
     dshowdebug("ff_dshow_enummediatypes_Clone(%p)\n", this);
