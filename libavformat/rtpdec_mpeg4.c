@@ -180,6 +180,18 @@ static int aac_parse_packet(AVFormatContext *ctx, PayloadContext *data,
 {
     int ret;
 
+    /* hack for some weird cameras */
+    if (buf && st->codecpar && st->codecpar->codec_id == AV_CODEC_ID_AAC && len > 8 && buf[0] == 0xFF && buf[1] == 0xF1) {
+        if ((ret = av_new_packet(pkt, len-7)) < 0) {
+            av_log(ctx, AV_LOG_ERROR, "Out of memory\n");
+            return ret;
+        }
+        memcpy(pkt->data, buf+7, len-7);
+        len = 0;
+        buf += len;
+        pkt->stream_index = st->index;
+        return 0;
+    }
 
     if (!buf) {
         if (data->cur_au_index > data->nb_au_headers) {
