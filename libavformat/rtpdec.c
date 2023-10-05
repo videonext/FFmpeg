@@ -665,7 +665,7 @@ static void finalize_packet(RTPDemuxContext *s, AVPacket *pkt, uint32_t timestam
             av_log(s->ic, AV_LOG_WARNING, "rtpdec: failed to set prft");
         }
     }
-
+#if 0
     if (s->last_rtcp_ntp_time != AV_NOPTS_VALUE && s->ic->nb_streams > 1) {
         int64_t addend;
         int delta_timestamp;
@@ -680,7 +680,7 @@ static void finalize_packet(RTPDemuxContext *s, AVPacket *pkt, uint32_t timestam
                    delta_timestamp;
         return;
     }
-
+#endif
     if (!s->base_timestamp)
         s->base_timestamp = timestamp;
     /* assume that the difference is INT32_MIN < x < INT32_MAX,
