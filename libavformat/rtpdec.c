@@ -703,6 +703,8 @@ static int rtp_parse_packet_internal(RTPDemuxContext *s, AVPacket *pkt,
     AVStream *st;
     uint32_t timestamp;
     int rv = 0;
+    void *header_ext_data = NULL;
+    int header_ext_data_size = 0;
 
     csrc         = buf[0] & 0x0f;
     ext          = buf[0] & 0x10;
@@ -753,6 +755,11 @@ static int rtp_parse_packet_internal(RTPDemuxContext *s, AVPacket *pkt,
 
         if (len < ext)
             return -1;
+
+        header_ext_data_size = ext;
+        header_ext_data = av_malloc(header_ext_data_size);
+        memcpy(header_ext_data, buf, header_ext_data_size);
+
         // skip past RTP header extension
         len -= ext;
         buf += ext;
@@ -762,12 +769,29 @@ static int rtp_parse_packet_internal(RTPDemuxContext *s, AVPacket *pkt,
         rv = s->handler->parse_packet(s->ic, s->dynamic_protocol_context,
                                       s->st, pkt, &timestamp, buf, len, seq,
                                       flags);
+        if (header_ext_data) {
+            int r = av_packet_add_side_data(pkt, AV_PKT_DATA_RTP_HEADER_EXTENSION, header_ext_data, header_ext_data_size);
+            if (r != 0) {
+                av_free(header_ext_data);
+            }
+        }
+
     } else if (st) {
-        if ((rv = av_new_packet(pkt, len)) < 0)
+        av_free(header_ext_data);
+        if ((rv = av_new_packet(pkt, len)) < 0) {
+            av_free(header_ext_data);
             return rv;
+        }
         memcpy(pkt->data, buf, len);
         pkt->stream_index = st->index;
+        if (header_ext_data) {
+            int r = av_packet_add_side_data(pkt, AV_PKT_DATA_RTP_HEADER_EXTENSION, header_ext_data, header_ext_data_size);
+            if (r != 0) {
+                av_free(header_ext_data);
+            }
+        }
     } else {
+        av_free(header_ext_data);
         return AVERROR(EINVAL);
     }
 

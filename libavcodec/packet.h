@@ -300,6 +300,11 @@ enum AVPacketSideDataType {
     AV_PKT_DATA_DYNAMIC_HDR10_PLUS,
 
     /**
+     * RFC 3550 Section 5.3.1 RTP Header Extension handling
+     */
+    AV_PKT_DATA_RTP_HEADER_EXTENSION,
+
+    /**
      * The number of side data types.
      * This is not part of the public API/ABI in the sense that it may
      * change when new side data types are added.

@@ -72,6 +72,15 @@ enum RTSPControlTransport {
     RTSP_MODE_TUNNEL   /**< RTSP over HTTP (tunneling) */
 };
 
+
+/**
+ * https://datatracker.ietf.org/doc/html/rfc2326#section-12.29
+ */
+enum RTSPRangeUnits {
+    RTSP_RANGE_NPT, /**<Normal play time (NPT) indicates the stream absolute position relative to the beginning of the presentation. */
+    RTSP_RANGE_CLOCK /**<Absolute time */
+};
+
 #define RTSP_DEFAULT_PORT   554
 #define RTSPS_DEFAULT_PORT  322
 #define RTSP_MAX_TRANSPORTS 8
@@ -414,6 +423,9 @@ typedef struct RTSPState {
      * User-Agent string
      */
     char *user_agent;
+
+    char *extra_play_headers;
+    int range_units;
 
     char default_lang[4];
     int buffer_size;

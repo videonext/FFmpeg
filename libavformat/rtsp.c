@@ -101,6 +101,10 @@ const AVOption ff_rtsp_options[] = {
     { "timeout", "set timeout (in microseconds) of socket I/O operations", OFFSET(stimeout), AV_OPT_TYPE_INT64, {.i64 = 0}, INT_MIN, INT64_MAX, DEC },
     COMMON_OPTS(),
     { "user_agent", "override User-Agent header", OFFSET(user_agent), AV_OPT_TYPE_STRING, {.str = LIBAVFORMAT_IDENT}, 0, 0, DEC },
+    { "extra_play_headers", "additional PLAY headers", OFFSET(extra_play_headers), AV_OPT_TYPE_STRING, {.str = NULL}, 0, 0, DEC },
+    { "range_units", "set Range header units for outgoing PLAY requests", OFFSET(range_units), AV_OPT_TYPE_FLAGS, {.i64 = 0}, INT_MIN, INT_MAX, DEC, "range_units" }, \
+    { "npt", "Normal play time (NPT) indicates the stream absolute position relative to the beginning of the presentation", 0, AV_OPT_TYPE_CONST, {.i64 = RTSP_RANGE_NPT}, 0, 0, DEC, "range_units" }, \
+    { "clock", "Absolute time", 0, AV_OPT_TYPE_CONST, {.i64 = RTSP_RANGE_CLOCK}, 0, 0, DEC, "range_units" },
     { NULL },
 };
 
@@ -178,6 +182,32 @@ static void rtsp_parse_range_npt(const char *p, int64_t *start, int64_t *end)
 
     p += strspn(p, SPACE_CHARS);
     if (!av_stristart(p, "npt=", &p))
+        return;
+
+    *start = AV_NOPTS_VALUE;
+    *end = AV_NOPTS_VALUE;
+
+    get_word_sep(buf, sizeof(buf), "-", &p);
+    if (av_parse_time(start, buf, 1) < 0)
+        return;
+    if (*p == '-') {
+        p++;
+        get_word_sep(buf, sizeof(buf), "-", &p);
+        if (av_parse_time(end, buf, 1) < 0)
+            av_log(NULL, AV_LOG_DEBUG, "Failed to parse interval end specification '%s'\n", buf);
+    }
+}
+
+/** Parse a string p in the form of Range:clock=xx-xx, and determine the start
+ *  and end time.
+ *  Used for seeking in the rtp stream.
+ */
+static void rtsp_parse_range_clock(const char *p, int64_t *start, int64_t *end)
+{
+    char buf[256];
+
+    p += strspn(p, SPACE_CHARS);
+    if (!av_stristart(p, "clock=", &p))
         return;
 
     *start = AV_NOPTS_VALUE;
@@ -1110,6 +1140,9 @@ void ff_rtsp_parse_line(AVFormatContext *s,
         reply->seq = strtol(p, NULL, 10);
     } else if (av_stristart(p, "Range:", &p)) {
         rtsp_parse_range_npt(p, &reply->range_start, &reply->range_end);
+        if (rt->range_units == RTSP_RANGE_CLOCK) {
+            rtsp_parse_range_clock(p, &reply->range_start, &reply->range_end);
+        }
     } else if (av_stristart(p, "RealChallenge1:", &p)) {
         p += strspn(p, SPACE_CHARS);
         av_strlcpy(reply->real_challenge, p, sizeof(reply->real_challenge));

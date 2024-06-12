@@ -37,6 +37,7 @@
 #include "tls.h"
 #include "url.h"
 #include "version.h"
+#include <time.h>
 
 static const struct RTSPStatusMessage {
     enum RTSPStatusCode code;
@@ -562,10 +563,33 @@ static int rtsp_read_play(AVFormatContext *s)
         if (rt->state == RTSP_STATE_PAUSED) {
             cmd[0] = 0;
         } else {
-            snprintf(cmd, sizeof(cmd),
+            char range_header[64];
+            if (rt->range_units == RTSP_RANGE_NPT) {
+                snprintf(range_header, sizeof(range_header),
                      "Range: npt=%"PRId64".%03"PRId64"-\r\n",
                      rt->seek_timestamp / AV_TIME_BASE,
                      rt->seek_timestamp / (AV_TIME_BASE / 1000) % 1000);
+            } else {
+                range_header[0] = '\0';
+                if (rt->seek_timestamp) {
+                    time_t seconds = rt->seek_timestamp / 1000000;
+                    struct tm *ptm, tmbuf;
+                    ptm = gmtime_r(&seconds, &tmbuf);
+                    if (ptm) {
+                        char buf[32];
+                        if (!strftime(buf, sizeof(buf), "%Y%m%dT%H%M%S", ptm))
+                            return AVERROR_EXTERNAL;
+                        av_strlcatf(buf, sizeof(buf), ".%03dZ", (int)(rt->seek_timestamp % 1000000));
+                        snprintf(range_header, sizeof(range_header),
+                                 "Range: clock=%s-\r\n", buf);
+                    }
+                }
+            }
+            snprintf(cmd, sizeof(cmd),
+                     "%s" /* range */
+                     "%s", /* extra play headers */
+                     range_header[0] ? range_header : "",
+                     rt->extra_play_headers ? rt->extra_play_headers : "");
         }
         ff_rtsp_send_cmd(s, "PLAY", rt->control_uri, cmd, reply, NULL);
         if (reply->status_code != RTSP_STATUS_OK) {
