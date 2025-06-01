@@ -23,6 +23,7 @@
 #include <w32api/errors.h>
 wchar_t *wcsdup(const wchar_t *);
 
+#include "libavutil/mem.h"
 #include "dshow_capture.h"
 
 #include <stddef.h>

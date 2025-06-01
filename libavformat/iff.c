@@ -34,8 +34,10 @@
 #include "libavutil/channel_layout.h"
 #include "libavutil/intreadwrite.h"
 #include "libavutil/dict.h"
+#include "libavutil/mem.h"
 #include "libavcodec/bytestream.h"
 #include "avformat.h"
+#include "demux.h"
 #include "id3v2.h"
 #include "internal.h"
 
@@ -357,6 +359,9 @@ static int read_dst_frame(AVFormatContext *s, AVPacket *pkt)
     uint32_t chunk_id;
     uint64_t chunk_pos, data_pos, data_size;
     int ret = AVERROR_EOF;
+
+    if (s->nb_streams < 1)
+        return AVERROR_INVALIDDATA;
 
     while (!avio_feof(pb)) {
         chunk_pos = avio_tell(pb);
@@ -901,12 +906,12 @@ static int iff_read_packet(AVFormatContext *s,
     return ret;
 }
 
-const AVInputFormat ff_iff_demuxer = {
-    .name           = "iff",
-    .long_name      = NULL_IF_CONFIG_SMALL("IFF (Interchange File Format)"),
+const FFInputFormat ff_iff_demuxer = {
+    .p.name         = "iff",
+    .p.long_name    = NULL_IF_CONFIG_SMALL("IFF (Interchange File Format)"),
+    .p.flags        = AVFMT_GENERIC_INDEX | AVFMT_NO_BYTE_SEEK,
     .priv_data_size = sizeof(IffDemuxContext),
     .read_probe     = iff_probe,
     .read_header    = iff_read_header,
     .read_packet    = iff_read_packet,
-    .flags          = AVFMT_GENERIC_INDEX | AVFMT_NO_BYTE_SEEK,
 };

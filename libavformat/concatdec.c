@@ -22,6 +22,7 @@
 #include "libavutil/avassert.h"
 #include "libavutil/bprint.h"
 #include "libavutil/intreadwrite.h"
+#include "libavutil/mem.h"
 #include "libavutil/opt.h"
 #include "libavutil/parseutils.h"
 #include "libavutil/timestamp.h"
@@ -949,15 +950,15 @@ static const AVClass concat_class = {
 };
 
 
-const AVInputFormat ff_concat_demuxer = {
-    .name           = "concat",
-    .long_name      = NULL_IF_CONFIG_SMALL("Virtual concatenation script"),
+const FFInputFormat ff_concat_demuxer = {
+    .p.name         = "concat",
+    .p.long_name    = NULL_IF_CONFIG_SMALL("Virtual concatenation script"),
+    .p.priv_class   = &concat_class,
     .priv_data_size = sizeof(ConcatContext),
-    .flags_internal = FF_FMT_INIT_CLEANUP,
+    .flags_internal = FF_INFMT_FLAG_INIT_CLEANUP,
     .read_probe     = concat_probe,
     .read_header    = concat_read_header,
     .read_packet    = concat_read_packet,
     .read_close     = concat_read_close,
     .read_seek2     = concat_seek,
-    .priv_class     = &concat_class,
 };
